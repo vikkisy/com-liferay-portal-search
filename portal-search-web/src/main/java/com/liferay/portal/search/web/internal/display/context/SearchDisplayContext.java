@@ -95,11 +95,14 @@ public class SearchDisplayContext {
 
 		if (keywords == null) {
 			_hits = null;
+			_keywords = null;
 			_searchContainer = null;
 			_searchContext = null;
 
 			return;
 		}
+
+		_keywords = new Keywords(keywords);
 
 		HttpServletRequest request = portal.getHttpServletRequest(
 			_renderRequest);
@@ -116,6 +119,18 @@ public class SearchDisplayContext {
 		searchContext.setEntryClassNames(
 			AssetEntriesSearchFacet.getEntryClassNames(
 				getSearchConfiguration()));
+
+		searchContext.setKeywords(_keywords.getKeywords());
+
+		boolean luceneSyntax = isUseAdvancedSearchSyntax();
+
+		if (!luceneSyntax) {
+			luceneSyntax = _keywords.isLuceneSyntax();
+		}
+
+		if (luceneSyntax) {
+			searchContext.setAttribute("luceneSyntax", Boolean.TRUE);
+		}
 
 		SearchRequestImpl searchRequestImpl = new SearchRequestImpl(
 			() -> searchContext, searchContainerOptions -> searchContainer,
@@ -452,6 +467,17 @@ public class SearchDisplayContext {
 		return false;
 	}
 
+	public boolean isUseAdvancedSearchSyntax() {
+		if (_useAdvancedSearchSyntax != null) {
+			return _useAdvancedSearchSyntax;
+		}
+
+		_useAdvancedSearchSyntax = GetterUtil.getBoolean(
+			_portletPreferences.getValue("useAdvancedSearchSyntax", null));
+
+		return _useAdvancedSearchSyntax;
+	}
+
 	public boolean isViewInContext() {
 		return _searchResultPreferences.isViewInContext();
 	}
@@ -474,7 +500,7 @@ public class SearchDisplayContext {
 	}
 
 	protected void contributeSearchSettings(SearchSettings searchSettings) {
-		searchSettings.setKeywords(getKeywords());
+		searchSettings.setKeywords(_keywords.getKeywords());
 
 		QueryConfig queryConfig = searchSettings.getQueryConfig();
 
@@ -575,6 +601,7 @@ public class SearchDisplayContext {
 	private final Hits _hits;
 	private Boolean _includeSystemPortlets;
 	private final IndexSearchPropsValues _indexSearchPropsValues;
+	private final Keywords _keywords;
 	private final PortletPreferences _portletPreferences;
 	private final PortletURLFactory _portletURLFactory;
 	private QueryConfig _queryConfig;
@@ -592,5 +619,6 @@ public class SearchDisplayContext {
 	private String _searchScopePreferenceString;
 	private final SummaryBuilderFactory _summaryBuilderFactory;
 	private final ThemeDisplaySupplier _themeDisplaySupplier;
+	private Boolean _useAdvancedSearchSyntax;
 
 }
