@@ -16,6 +16,7 @@ package com.liferay.portal.search.facet.faceted.searcher.test;
 
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
 import com.liferay.portal.kernel.model.Group;
+import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.search.Field;
 import com.liferay.portal.kernel.search.SearchContext;
 import com.liferay.portal.kernel.search.facet.Facet;
@@ -23,7 +24,6 @@ import com.liferay.portal.kernel.search.facet.MultiValueFacetFactory;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.rule.Sync;
 import com.liferay.portal.kernel.test.rule.SynchronousDestinationTestRule;
-import com.liferay.portal.kernel.test.util.SearchContextTestUtil;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.registry.Registry;
 import com.liferay.registry.RegistryUtil;
@@ -66,11 +66,9 @@ public class AssetTagNamesFacetedSearcherTest
 
 	@Test
 	public void testSearchByFacet() throws Exception {
-		Group group = userSearchFixture.addGroup();
-
 		String tag = "enterprise. open-source for life";
 
-		userSearchFixture.addUser(group, tag);
+		addUser(tag);
 
 		SearchContext searchContext = getSearchContext(tag);
 
@@ -87,12 +85,10 @@ public class AssetTagNamesFacetedSearcherTest
 		assertFrequencies(facet.getFieldName(), searchContext, frequencies);
 	}
 
-	protected SearchContext getSearchContext(String keywords) throws Exception {
-		SearchContext searchContext = SearchContextTestUtil.getSearchContext();
+	protected User addUser(String... assetTagNames) throws Exception {
+		Group group = userSearchFixture.addGroup();
 
-		searchContext.setKeywords(keywords);
-
-		return searchContext;
+		return userSearchFixture.addUser(group, assetTagNames);
 	}
 
 	private MultiValueFacetFactory _multiValueFacetFactory;
