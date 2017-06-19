@@ -116,12 +116,6 @@ public class SearchDisplayContext {
 
 		SearchContext searchContext = SearchContextFactory.getInstance(request);
 
-		searchContext.setEntryClassNames(
-			AssetEntriesSearchFacet.getEntryClassNames(
-				getSearchConfiguration()));
-
-		searchContext.setKeywords(_keywords.getKeywords());
-
 		boolean luceneSyntax = isUseAdvancedSearchSyntax();
 
 		if (!luceneSyntax) {
@@ -131,6 +125,12 @@ public class SearchDisplayContext {
 		if (luceneSyntax) {
 			searchContext.setAttribute("luceneSyntax", Boolean.TRUE);
 		}
+
+		searchContext.setEntryClassNames(
+			AssetEntriesSearchFacet.getEntryClassNames(
+				getSearchConfiguration()));
+
+		searchContext.setKeywords(_keywords.getKeywords());
 
 		SearchRequestImpl searchRequestImpl = new SearchRequestImpl(
 			() -> searchContext, searchContainerOptions -> searchContainer,
