@@ -28,7 +28,6 @@ import com.liferay.portal.kernel.search.Indexer;
 import com.liferay.portal.kernel.search.IndexerRegistry;
 import com.liferay.portal.kernel.search.IndexerRegistryUtil;
 import com.liferay.portal.kernel.search.SearchException;
-import com.liferay.portal.kernel.search.Summary;
 import com.liferay.portal.kernel.security.permission.ResourceActions;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.ArrayUtil;
@@ -39,6 +38,9 @@ import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.search.summary.Summary;
+import com.liferay.portal.search.summary.SummaryBuilder;
+import com.liferay.portal.search.summary.SummaryBuilderFactory;
 import com.liferay.portal.search.web.internal.display.context.PortletURLFactory;
 import com.liferay.portal.search.web.internal.display.context.SearchResultPreferences;
 import com.liferay.portal.search.web.internal.result.display.context.SearchResultFieldDisplayContext;
@@ -141,10 +143,6 @@ public class SearchResultSummaryDisplayBuilder {
 		_portletURLFactory = portletURLFactory;
 	}
 
-	public void setQueryTerms(String[] queryTerms) {
-		_queryTerms = queryTerms;
-	}
-
 	public void setRenderRequest(RenderRequest renderRequest) {
 		_renderRequest = renderRequest;
 	}
@@ -173,6 +171,12 @@ public class SearchResultSummaryDisplayBuilder {
 		_searchResultViewURLSupplier = searchResultViewURLSupplier;
 	}
 
+	public void setSummaryBuilderFactory(
+		SummaryBuilderFactory summaryBuilderFactory) {
+
+		_summaryBuilderFactory = summaryBuilderFactory;
+	}
+
 	public void setThemeDisplay(ThemeDisplay themeDisplay) {
 		_themeDisplay = themeDisplay;
 	}
@@ -189,13 +193,12 @@ public class SearchResultSummaryDisplayBuilder {
 		searchResultSummaryDisplayContext.setClassPK(classPK);
 
 		if (Validator.isNotNull(summary.getContent())) {
-			searchResultSummaryDisplayContext.setContent(
-				summary.getHighlightedContent());
+			searchResultSummaryDisplayContext.setContent(summary.getContent());
 			searchResultSummaryDisplayContext.setContentVisible(true);
 		}
 
 		searchResultSummaryDisplayContext.setHighlightedTitle(
-			summary.getHighlightedTitle());
+			summary.getTitle());
 		searchResultSummaryDisplayContext.setPortletURL(
 			_portletURLFactory.getPortletURL());
 
@@ -247,7 +250,8 @@ public class SearchResultSummaryDisplayBuilder {
 				assetRenderer.getURLDownload(_themeDisplay));
 			searchResultSummaryDisplayContext.
 				setAssetRendererURLDownloadVisible(true);
-			searchResultSummaryDisplayContext.setTitle(summary.getTitle());
+			searchResultSummaryDisplayContext.setTitle(
+				assetRenderer.getTitle(summary.getLocale()));
 		}
 	}
 
@@ -458,28 +462,38 @@ public class SearchResultSummaryDisplayBuilder {
 			String className, AssetRenderer<?> assetRenderer)
 		throws SearchException {
 
-		Summary summary = null;
+		SummaryBuilder summaryBuilder = _summaryBuilderFactory.newInstance();
+
+		summaryBuilder.setHighlight(_highlightEnabled);
 
 		Indexer indexer = getIndexer(className);
 
 		if (indexer != null) {
 			String snippet = _document.get(Field.SNIPPET);
 
-			summary = indexer.getSummary(
-				_document, snippet, _renderRequest, _renderResponse);
+			com.liferay.portal.kernel.search.Summary summary =
+				indexer.getSummary(
+					_document, snippet, _renderRequest, _renderResponse);
+
+			if (summary != null) {
+				summaryBuilder.setContent(summary.getContent());
+				summaryBuilder.setLocale(summary.getLocale());
+				summaryBuilder.setMaxContentLength(
+					summary.getMaxContentLength());
+				summaryBuilder.setTitle(summary.getTitle());
+
+				return summaryBuilder.build();
+			}
 		}
 		else if (assetRenderer != null) {
-			summary = new Summary(
-				_locale, assetRenderer.getTitle(_locale),
-				assetRenderer.getSearchSummary(_locale));
+			summaryBuilder.setContent(assetRenderer.getSearchSummary(_locale));
+			summaryBuilder.setLocale(_locale);
+			summaryBuilder.setTitle(assetRenderer.getTitle(_locale));
+
+			return summaryBuilder.build();
 		}
 
-		if (summary != null) {
-			summary.setHighlight(_highlightEnabled);
-			summary.setQueryTerms(_queryTerms);
-		}
-
-		return summary;
+		return null;
 	}
 
 	protected String getValuesToString(Field field) {
@@ -561,13 +575,13 @@ public class SearchResultSummaryDisplayBuilder {
 	private Language _language;
 	private Locale _locale;
 	private PortletURLFactory _portletURLFactory;
-	private String[] _queryTerms;
 	private RenderRequest _renderRequest;
 	private RenderResponse _renderResponse;
 	private HttpServletRequest _request;
 	private ResourceActions _resourceActions;
 	private SearchResultPreferences _searchResultPreferences;
 	private SearchResultViewURLSupplier _searchResultViewURLSupplier;
+	private SummaryBuilderFactory _summaryBuilderFactory;
 	private ThemeDisplay _themeDisplay;
 
 }
