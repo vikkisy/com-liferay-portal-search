@@ -32,7 +32,10 @@ import com.liferay.portal.kernel.util.HashMapDictionary;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Locale;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.portlet.PortletRequest;
 import javax.portlet.PortletResponse;
@@ -131,7 +134,7 @@ public class IndexerPostProcessorRegistryTest {
 
 	@Test
 	public void testNullIndexerIndexerPostProcessor() throws Exception {
-		Indexer indexer = IndexerRegistryUtil.getIndexer(
+		Indexer<?> indexer = IndexerRegistryUtil.getIndexer(
 			"com.liferay.portal.test.SampleModel");
 
 		Assert.assertNull(indexer);
@@ -140,7 +143,7 @@ public class IndexerPostProcessorRegistryTest {
 
 		BundleContext bundleContext = bundle.getBundleContext();
 
-		Indexer<?> sampleIndexer = new BaseIndexer() {
+		Indexer<?> sampleIndexer = new BaseIndexer<Object>() {
 
 			@Override
 			public String getClassName() {
@@ -181,34 +184,35 @@ public class IndexerPostProcessorRegistryTest {
 
 		};
 
-		ServiceRegistration<Indexer> serviceRegistration = null;
-
-		try {
-			serviceRegistration = bundleContext.registerService(
+		ServiceRegistration<?> serviceRegistration =
+			bundleContext.registerService(
 				Indexer.class, sampleIndexer, new HashMapDictionary<>());
 
+		try {
 			indexer = IndexerRegistryUtil.getIndexer(
 				"com.liferay.portal.test.SampleModel");
 
 			Assert.assertNotNull(indexer);
 
-			IndexerPostProcessor[] indexerPostProcessors =
-				indexer.getIndexerPostProcessors();
+			List<String> expectedClassNames = Arrays.asList(
+				TestSampleModelIndexerPostProcessor.class.getName());
+
+			Stream<IndexerPostProcessor> indexerPostProcessorStream = Stream.of(
+				indexer.getIndexerPostProcessors());
+
+			List<String> actualClassNames = indexerPostProcessorStream.map(
+				IndexerPostProcessor::getClass
+			).map(
+				Class::getName
+			).collect(
+				Collectors.toList()
+			);
 
 			Assert.assertEquals(
-				Arrays.toString(indexerPostProcessors), 1,
-				indexerPostProcessors.length);
-
-			Class<?> clazz = indexerPostProcessors[0].getClass();
-
-			Assert.assertEquals(
-				TestSampleModelIndexerPostProcessor.class.getName(),
-				clazz.getName());
+				expectedClassNames.toString(), actualClassNames.toString());
 		}
 		finally {
-			if (serviceRegistration != null) {
-				serviceRegistration.unregister();
-			}
+			serviceRegistration.unregister();
 		}
 	}
 
