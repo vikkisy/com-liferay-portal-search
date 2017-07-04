@@ -217,8 +217,6 @@ public class SearchResultSummaryDisplayBuilder {
 
 		searchResultSummaryDisplayContext.setClassName(className);
 		searchResultSummaryDisplayContext.setClassPK(classPK);
-		searchResultSummaryDisplayContext.setPortletURL(
-			_portletURLFactory.getPortletURL());
 
 		if (Validator.isNotNull(summary.getContent())) {
 			searchResultSummaryDisplayContext.setContent(
@@ -228,6 +226,8 @@ public class SearchResultSummaryDisplayBuilder {
 
 		searchResultSummaryDisplayContext.setHighlightedTitle(
 			summary.getHighlightedTitle());
+		searchResultSummaryDisplayContext.setPortletURL(
+			_portletURLFactory.getPortletURL());
 
 		if (_abridged) {
 			return searchResultSummaryDisplayContext;
