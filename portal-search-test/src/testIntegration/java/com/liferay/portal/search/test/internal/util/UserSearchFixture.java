@@ -46,6 +46,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 /**
  * @author André de Oliveira
@@ -184,7 +185,9 @@ public class UserSearchFixture {
 	private void _filterByGroups(SearchContext searchContext) {
 		BooleanQuery booleanQuery = new BooleanQueryImpl();
 
-		_groups.stream().map(
+		Stream<Group> groupsStream = _groups.stream();
+
+		groupsStream.map(
 			this::_getGroupIdQuery
 		).forEach(
 			query -> _addShouldClause(booleanQuery, query)
