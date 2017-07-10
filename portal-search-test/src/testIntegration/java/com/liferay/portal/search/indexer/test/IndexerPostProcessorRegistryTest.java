@@ -199,9 +199,11 @@ public class IndexerPostProcessorRegistryTest {
 				Arrays.toString(indexerPostProcessors), 1,
 				indexerPostProcessors.length);
 
+			Class<?> clazz = indexerPostProcessors[0].getClass();
+
 			Assert.assertEquals(
 				TestSampleModelIndexerPostProcessor.class.getName(),
-				indexerPostProcessors[0].getClass().getName());
+				clazz.getName());
 		}
 		finally {
 			if (serviceRegistration != null) {
