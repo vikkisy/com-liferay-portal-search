@@ -31,11 +31,13 @@ import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.util.HashMapDictionary;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 
+import java.util.Arrays;
 import java.util.Locale;
 
 import javax.portlet.PortletRequest;
 import javax.portlet.PortletResponse;
 
+import org.junit.Assert;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
@@ -193,9 +195,11 @@ public class IndexerPostProcessorRegistryTest {
 			IndexerPostProcessor[] indexerPostProcessors =
 				indexer.getIndexerPostProcessors();
 
-			assertEquals(1, indexerPostProcessors.length);
+			Assert.assertEquals(
+				Arrays.toString(indexerPostProcessors), 1,
+				indexerPostProcessors.length);
 
-			assertEquals(
+			Assert.assertEquals(
 				TestSampleModelIndexerPostProcessor.class.getName(),
 				indexerPostProcessors[0].getClass().getName());
 		}
