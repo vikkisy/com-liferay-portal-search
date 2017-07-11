@@ -101,10 +101,6 @@ public abstract class BaseFacetedSearcherTestCase {
 		return _facetedSearcherManager.createFacetedSearcher();
 	}
 
-	protected SearchContext getSearchContext(String keywords) throws Exception {
-		return userSearchFixture.getSearchContext(keywords);
-	}
-
 	protected boolean isMissingScreenName(Document document) {
 		return Validator.isNull(document.get("screenName"));
 	}
