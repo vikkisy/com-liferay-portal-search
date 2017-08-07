@@ -39,9 +39,9 @@ public class AssetTagDocumentContributor implements DocumentContributor {
 	public void contribute(Document document, BaseModel baseModel) {
 		String className = document.get(Field.ENTRY_CLASS_NAME);
 
-		long classPK = GetterUtil.getLong(document.get(Field.ENTRY_CLASS_PK));
-
 		long classNameId = portal.getClassNameId(className);
+
+		long classPK = GetterUtil.getLong(document.get(Field.ENTRY_CLASS_PK));
 
 		List<AssetTag> assetTags = assetTagLocalService.getTags(
 			classNameId, classPK);

@@ -45,7 +45,6 @@ public class AssetCategoryDocumentContributor implements DocumentContributor {
 	@Override
 	public void contribute(Document document, BaseModel baseModel) {
 		String className = document.get(Field.ENTRY_CLASS_NAME);
-
 		long classPK = GetterUtil.getLong(document.get(Field.ENTRY_CLASS_PK));
 
 		List<AssetCategory> assetCategories =
