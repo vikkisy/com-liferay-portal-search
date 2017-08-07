@@ -12,34 +12,44 @@
  * details.
  */
 
-package com.liferay.portal.search.internal.contributor.document;
+package com.liferay.portal.search.internal.document.contributor;
 
-import com.liferay.portal.kernel.model.AttachedModel;
+import com.liferay.portal.kernel.model.AuditedModel;
 import com.liferay.portal.kernel.model.BaseModel;
 import com.liferay.portal.kernel.search.Document;
 import com.liferay.portal.kernel.search.DocumentContributor;
-import com.liferay.portal.kernel.search.DocumentHelper;
+import com.liferay.portal.kernel.search.Field;
+import com.liferay.portal.kernel.util.Portal;
 
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author Michael C. Han
  */
 @Component(immediate = true, service = DocumentContributor.class)
-public class AttachedModelDocumentContributor implements DocumentContributor {
+public class AuditedModelDocumentContributor implements DocumentContributor {
 
 	@Override
 	public void contribute(Document document, BaseModel baseModel) {
-		if (!(baseModel instanceof AttachedModel)) {
+		if (!(baseModel instanceof AuditedModel)) {
 			return;
 		}
 
-		DocumentHelper documentHelper = new DocumentHelper(document);
+		AuditedModel auditedModel = (AuditedModel)baseModel;
 
-		AttachedModel attachedModel = (AttachedModel)baseModel;
+		document.addKeyword(Field.COMPANY_ID, auditedModel.getCompanyId());
+		document.addDate(Field.CREATE_DATE, auditedModel.getCreateDate());
+		document.addDate(Field.MODIFIED_DATE, auditedModel.getModifiedDate());
+		document.addKeyword(Field.USER_ID, auditedModel.getUserId());
 
-		documentHelper.setAttachmentOwnerKey(
-			attachedModel.getClassNameId(), attachedModel.getClassPK());
+		String userName = portal.getUserName(
+			auditedModel.getUserId(), auditedModel.getUserName());
+
+		document.addKeyword(Field.USER_NAME, userName, true);
 	}
+
+	@Reference
+	protected Portal portal;
 
 }

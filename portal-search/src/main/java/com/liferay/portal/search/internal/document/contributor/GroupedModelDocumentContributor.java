@@ -12,19 +12,15 @@
  * details.
  */
 
-package com.liferay.portal.search.internal.contributor.document;
+package com.liferay.portal.search.internal.document.contributor;
 
-import com.liferay.asset.kernel.model.AssetTag;
-import com.liferay.asset.kernel.service.AssetTagLocalService;
 import com.liferay.portal.kernel.model.BaseModel;
+import com.liferay.portal.kernel.model.Group;
+import com.liferay.portal.kernel.model.GroupedModel;
 import com.liferay.portal.kernel.search.Document;
 import com.liferay.portal.kernel.search.DocumentContributor;
 import com.liferay.portal.kernel.search.Field;
-import com.liferay.portal.kernel.util.GetterUtil;
-import com.liferay.portal.kernel.util.ListUtil;
-import com.liferay.portal.kernel.util.Portal;
-
-import java.util.List;
+import com.liferay.portal.kernel.service.GroupLocalService;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -33,34 +29,42 @@ import org.osgi.service.component.annotations.Reference;
  * @author Michael C. Han
  */
 @Component(immediate = true, service = DocumentContributor.class)
-public class AssetTagDocumentContributor implements DocumentContributor {
+public class GroupedModelDocumentContributor implements DocumentContributor {
 
 	@Override
 	public void contribute(Document document, BaseModel baseModel) {
-		String className = document.get(Field.ENTRY_CLASS_NAME);
+		if (!(baseModel instanceof GroupedModel)) {
+			return;
+		}
 
-		long classPK = GetterUtil.getLong(document.get(Field.ENTRY_CLASS_PK));
+		GroupedModel groupedModel = (GroupedModel)baseModel;
 
-		long classNameId = portal.getClassNameId(className);
+		document.addKeyword(
+			Field.GROUP_ID, getSiteGroupId(groupedModel.getGroupId()));
+		document.addKeyword(Field.SCOPE_GROUP_ID, groupedModel.getGroupId());
+	}
 
-		List<AssetTag> assetTags = assetTagLocalService.getTags(
-			classNameId, classPK);
+	protected Group getSiteGroup(long groupId) {
+		Group group = groupLocalService.fetchGroup(groupId);
 
-		String[] assetTagNames = ListUtil.toArray(
-			assetTags, AssetTag.NAME_ACCESSOR);
+		if ((group != null) && group.isLayout()) {
+			group = group.getParentGroup();
+		}
 
-		document.addText(Field.ASSET_TAG_NAMES, assetTagNames);
+		return group;
+	}
 
-		long[] assetTagsIds = ListUtil.toLongArray(
-			assetTags, AssetTag.TAG_ID_ACCESSOR);
+	protected long getSiteGroupId(long groupId) {
+		Group group = getSiteGroup(groupId);
 
-		document.addKeyword(Field.ASSET_TAG_IDS, assetTagsIds);
+		if (group == null) {
+			return groupId;
+		}
+
+		return group.getGroupId();
 	}
 
 	@Reference
-	protected AssetTagLocalService assetTagLocalService;
-
-	@Reference
-	protected Portal portal;
+	protected GroupLocalService groupLocalService;
 
 }
