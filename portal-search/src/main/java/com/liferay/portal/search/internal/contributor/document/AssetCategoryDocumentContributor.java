@@ -12,7 +12,7 @@
  * details.
  */
 
-package com.liferay.portal.search.internal.document.contributor;
+package com.liferay.portal.search.internal.contributor.document;
 
 import com.liferay.asset.kernel.model.AssetCategory;
 import com.liferay.asset.kernel.service.AssetCategoryLocalService;

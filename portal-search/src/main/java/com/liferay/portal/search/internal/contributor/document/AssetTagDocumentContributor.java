@@ -12,14 +12,19 @@
  * details.
  */
 
-package com.liferay.portal.search.internal.document.contributor;
+package com.liferay.portal.search.internal.contributor.document;
 
-import com.liferay.portal.kernel.model.AuditedModel;
+import com.liferay.asset.kernel.model.AssetTag;
+import com.liferay.asset.kernel.service.AssetTagLocalService;
 import com.liferay.portal.kernel.model.BaseModel;
 import com.liferay.portal.kernel.search.Document;
 import com.liferay.portal.kernel.search.DocumentContributor;
 import com.liferay.portal.kernel.search.Field;
+import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.Portal;
+
+import java.util.List;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -28,26 +33,32 @@ import org.osgi.service.component.annotations.Reference;
  * @author Michael C. Han
  */
 @Component(immediate = true, service = DocumentContributor.class)
-public class AuditedModelDocumentContributor implements DocumentContributor {
+public class AssetTagDocumentContributor implements DocumentContributor {
 
 	@Override
 	public void contribute(Document document, BaseModel baseModel) {
-		if (!(baseModel instanceof AuditedModel)) {
-			return;
-		}
+		String className = document.get(Field.ENTRY_CLASS_NAME);
 
-		AuditedModel auditedModel = (AuditedModel)baseModel;
+		long classNameId = portal.getClassNameId(className);
 
-		document.addKeyword(Field.COMPANY_ID, auditedModel.getCompanyId());
-		document.addDate(Field.CREATE_DATE, auditedModel.getCreateDate());
-		document.addDate(Field.MODIFIED_DATE, auditedModel.getModifiedDate());
-		document.addKeyword(Field.USER_ID, auditedModel.getUserId());
+		long classPK = GetterUtil.getLong(document.get(Field.ENTRY_CLASS_PK));
 
-		String userName = portal.getUserName(
-			auditedModel.getUserId(), auditedModel.getUserName());
+		List<AssetTag> assetTags = assetTagLocalService.getTags(
+			classNameId, classPK);
 
-		document.addKeyword(Field.USER_NAME, userName, true);
+		String[] assetTagNames = ListUtil.toArray(
+			assetTags, AssetTag.NAME_ACCESSOR);
+
+		document.addText(Field.ASSET_TAG_NAMES, assetTagNames);
+
+		long[] assetTagsIds = ListUtil.toLongArray(
+			assetTags, AssetTag.TAG_ID_ACCESSOR);
+
+		document.addKeyword(Field.ASSET_TAG_IDS, assetTagsIds);
 	}
+
+	@Reference
+	protected AssetTagLocalService assetTagLocalService;
 
 	@Reference
 	protected Portal portal;
