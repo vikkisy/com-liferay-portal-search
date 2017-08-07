@@ -234,7 +234,6 @@ public class SearchPaginationTest {
 		searchContext.setEnd(end);
 		searchContext.setGroupIds(new long[] {TestPropsValues.getGroupId()});
 		searchContext.setKeywords(keyword);
-
 		searchContext.setSorts(new Sort("screenName", false));
 		searchContext.setStart(start);
 
