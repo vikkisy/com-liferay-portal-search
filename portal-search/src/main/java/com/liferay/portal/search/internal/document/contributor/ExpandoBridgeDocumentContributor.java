@@ -26,7 +26,7 @@ import org.osgi.service.component.annotations.Reference;
  * @author Michael C. Han
  */
 @Component(immediate = true, service = DocumentContributor.class)
-public class ExpandoDocumentContributor implements DocumentContributor {
+public class ExpandoBridgeDocumentContributor implements DocumentContributor {
 
 	@Override
 	public void contribute(Document document, BaseModel baseModel) {
