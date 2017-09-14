@@ -41,6 +41,7 @@ import com.liferay.portal.search.summary.SummaryBuilderFactory;
 import com.liferay.portal.search.web.constants.SearchPortletParameterNames;
 import com.liferay.portal.search.web.facet.SearchFacet;
 import com.liferay.portal.search.web.facet.util.SearchFacetTracker;
+import com.liferay.portal.search.web.internal.facet.AssetEntriesSearchFacet;
 import com.liferay.portal.search.web.internal.portlet.SearchPortletSearchResultPreferences;
 import com.liferay.portal.search.web.internal.search.request.SearchRequestImpl;
 import com.liferay.portal.search.web.internal.search.request.SearchResponseImpl;
@@ -110,6 +111,10 @@ public class SearchDisplayContext {
 			_renderRequest, getPortletURL(), null, emptyResultMessage);
 
 		SearchContext searchContext = SearchContextFactory.getInstance(request);
+
+		searchContext.setEntryClassNames(
+			AssetEntriesSearchFacet.getEntryClassNames(
+				getSearchConfiguration()));
 
 		SearchRequestImpl searchRequestImpl = new SearchRequestImpl(
 			() -> searchContext, searchContainerOptions -> searchContainer,
@@ -515,7 +520,7 @@ public class SearchDisplayContext {
 		groupIdOptional.ifPresent(
 			groupId -> {
 				searchSettings.addCondition(
-					new BooleanClauseImpl(
+					new BooleanClauseImpl<>(
 						new TermQueryImpl(
 							Field.GROUP_ID, String.valueOf(groupId)),
 						BooleanClauseOccur.MUST));
