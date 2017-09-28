@@ -224,7 +224,7 @@ public class SearchUtil {
 		}
 		catch (Exception e) {
 			_log.error(
-				"Unable to get search result  view URL for class " + className +
+				"Unable to get search result view URL for class " + className +
 					" with primary key " + classPK,
 				e);
 
