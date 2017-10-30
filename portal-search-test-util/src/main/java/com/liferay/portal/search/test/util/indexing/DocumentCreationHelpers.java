@@ -47,6 +47,12 @@ public class DocumentCreationHelpers {
 		};
 	}
 
+	public static DocumentCreationHelper singleNumber(
+		String fieldName, double value) {
+
+		return document -> document.addNumber(fieldName, value);
+	}
+
 	public static DocumentCreationHelper singleNumberSortable(
 		final String field, final int value) {
 
