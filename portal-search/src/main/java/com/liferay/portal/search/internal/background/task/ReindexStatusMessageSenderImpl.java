@@ -71,7 +71,7 @@ public class ReindexStatusMessageSenderImpl
 
 		if (_log.isDebugEnabled()) {
 			_log.debug(
-				"Sent Reindex Status Message to Background Task: " + message);
+				"Sent reindex background task status message: " + message);
 		}
 	}
 

@@ -106,11 +106,10 @@ public class SearchEngineInitializer implements Runnable {
 
 			SearchEngineHelperUtil.initialize(_companyId);
 
-			List<FutureTask<Void>> futureTasks = new ArrayList<>();
-			Set<String> searchEngineIds = new HashSet<>();
-
 			long backgroundTaskId =
 				BackgroundTaskThreadLocal.getBackgroundTaskId();
+			List<FutureTask<Void>> futureTasks = new ArrayList<>();
+			Set<String> searchEngineIds = new HashSet<>();
 
 			for (Indexer<?> indexer : IndexerRegistryUtil.getIndexers()) {
 				String searchEngineId = indexer.getSearchEngineId();
