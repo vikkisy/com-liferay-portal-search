@@ -46,16 +46,7 @@ public abstract class BaseQuerySuggester implements QuerySuggester {
 		Map<String, List<String>> suggestions = spellCheckKeywords(
 			searchContext, 1);
 
-		// Must use LocalizationUtil instead of @Reference Localization,
-		// otherwise it becomes an unsatisfied reference and the component
-		// remains undeployed, with no stack trace.
-		// Similar to:
-		// https://issues.liferay.com/browse/LPS-72507
-		//     ("Stop using HttpUtil in modules, use service reference directly
-		//     instead")
-		// https://github.com/liferay/liferay-portal/commit/
-		//     cdadae7#diff-874fcf4d20d5892447db4ce340c2bc49
-		// https://github.com/liferay/liferay-portal/commit/d1da078
+		// See LPS-72507 and LPS-76500
 
 		Localization localization = LocalizationUtil.getLocalization();
 
