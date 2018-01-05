@@ -46,14 +46,14 @@ public abstract class BaseQuerySuggester implements QuerySuggester {
 		Map<String, List<String>> suggestions = spellCheckKeywords(
 			searchContext, 1);
 
+		Tokenizer tokenizer = getTokenizer();
+
 		// See LPS-72507 and LPS-76500
 
 		Localization localization = LocalizationUtil.getLocalization();
 
 		String localizedFieldName = localization.getLocalizedName(
 			searchContext.getLanguageId(), Field.SPELL_CHECK_WORD);
-
-		Tokenizer tokenizer = getTokenizer();
 
 		List<String> keywords = tokenizer.tokenize(
 			localizedFieldName, searchContext.getKeywords(),
