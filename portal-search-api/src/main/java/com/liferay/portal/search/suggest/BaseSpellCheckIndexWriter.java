@@ -207,6 +207,11 @@ public abstract class BaseSpellCheckIndexWriter
 		}
 
 		try {
+
+			// See LPS-72507 and LPS-76500
+
+			Digester digester = DigesterUtil.getDigester();
+
 			CharsetEncoder charsetEncoder =
 				CharsetEncoderUtil.getCharsetEncoder(StringPool.UTF8);
 
@@ -227,10 +232,6 @@ public abstract class BaseSpellCheckIndexWriter
 			}
 
 			String key = keySB.toString();
-
-			// See LPS-72507 and LPS-76500
-
-			Digester digester = DigesterUtil.getDigester();
 
 			byte[] bytes = digester.digestRaw(
 				Digester.MD5, charsetEncoder.encode(CharBuffer.wrap(key)));
