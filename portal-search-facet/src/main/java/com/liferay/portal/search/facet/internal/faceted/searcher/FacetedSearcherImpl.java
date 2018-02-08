@@ -176,8 +176,6 @@ public class FacetedSearcherImpl
 				fullQueryBooleanFilter.addTerm(
 					Field.STAGING_GROUP, "true", BooleanClauseOccur.MUST_NOT);
 			}
-
-			searchQuery.addTerms(Field.KEYWORDS, keywords);
 		}
 
 		List<Group> inactiveGroups = _groupLocalService.getActiveGroups(
