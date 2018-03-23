@@ -15,6 +15,7 @@
 package com.liferay.portal.search.test.util.pagination;
 
 import com.liferay.petra.string.CharPool;
+import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.search.Document;
 import com.liferay.portal.kernel.search.Field;
 import com.liferay.portal.kernel.search.Hits;
@@ -40,7 +41,10 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 import org.mockito.AdditionalMatchers;
 import org.mockito.Matchers;
@@ -51,6 +55,63 @@ import org.mockito.Mockito;
  */
 public abstract class BasePermissionFilteredPaginationTestCase
 	extends BaseIndexingTestCase {
+
+	@Before
+	public void setUp() throws Exception {
+		super.setUp();
+
+		permissionFilteredSearchResultAccurateCountThreshold = 9;
+		searchQueryResultWindowLimit = 9;
+	}
+
+	@Test
+	public void testAccurateCountThreshold() throws Exception {
+		index(9, filtering(4));
+
+		permissionFilteredSearchResultAccurateCountThreshold = 4;
+
+		assertPaginationCounts(1, 9, 3, "[8, 8, 8]");
+	}
+
+	@Test
+	public void testAccurateCountThresholdLessThanExpectedFiltered()
+		throws Exception {
+
+		index(9, filtering(4));
+
+		permissionFilteredSearchResultAccurateCountThreshold = 3;
+
+		assertPaginationCounts(1, 9, 3, "[9, 8, 8]");
+	}
+
+	@Test
+	public void testAccurateCountThresholdMoreThanExpectedFiltered()
+		throws Exception {
+
+		index(9, filtering(4));
+
+		permissionFilteredSearchResultAccurateCountThreshold = 5;
+
+		assertPaginationCounts(1, 9, 3, "[8, 8, 8]");
+	}
+
+	@Test
+	public void testAccurateCountThresholdNegativeOne() throws Exception {
+		index(9, filtering(4));
+
+		permissionFilteredSearchResultAccurateCountThreshold = -1;
+
+		assertPaginationCounts(1, 9, 3, "[9, 8, 8]");
+	}
+
+	@Test
+	public void testAccurateCountThresholdZero() throws Exception {
+		index(9, filtering(4));
+
+		permissionFilteredSearchResultAccurateCountThreshold = 0;
+
+		assertPaginationCounts(1, 9, 3, "[9, 8, 8]");
+	}
 
 	@Test
 	public void testExcludeEveryThird() throws Exception {
@@ -137,11 +198,43 @@ public abstract class BasePermissionFilteredPaginationTestCase
 	}
 
 	@Test
-	public void testSearchQueryResultWindowLimit() throws Exception {
+	public void testSearchQueryResultWindowLimitNegativeOne() throws Exception {
+		index(9, filtering());
+
+		searchQueryResultWindowLimit = -1;
+
+		expectedException.expect(SystemException.class);
+		expectedException.expectMessage(
+			"Search result window size of 9 exceeds the configured limit of " +
+				"-1");
+
+		assertPagination(1, 1, 1, "[[1]]");
+	}
+
+	@Test
+	public void testSearchQueryResultWindowLimitZero() throws Exception {
+		index(9, filtering());
+
+		searchQueryResultWindowLimit = 0;
+
+		expectedException.expect(SystemException.class);
+		expectedException.expectMessage(
+			"Search result window size of 9 exceeds the configured limit of 0");
+
+		assertPagination(1, 1, 1, "[[1]]");
+	}
+
+	@Test
+	public void testSlidingWindow() throws Exception {
 		index(9, filtering(1, 2, 3, 4, 5, 6, 7, 8));
+
+		searchQueryResultWindowLimit = 3;
 
 		assertPagination(1, 9, 9, "[[9]]");
 	}
+
+	@Rule
+	public ExpectedException expectedException = ExpectedException.none();
 
 	protected void assertPagination(
 			int from, int to, int pageSize, String expectedPaginationResult)
@@ -152,6 +245,21 @@ public abstract class BasePermissionFilteredPaginationTestCase
 			() -> {
 				doAssertPagination(
 					from, to, pageSize, expectedPaginationResult);
+
+				return null;
+			});
+	}
+
+	protected void assertPaginationCounts(
+			int from, int to, int pageSize,
+			String expectedPaginationCountsResult)
+		throws Exception {
+
+		IdempotentRetryAssert.retryAssert(
+			3, TimeUnit.SECONDS,
+			() -> {
+				doAssertPaginationCounts(
+					from, to, pageSize, expectedPaginationCountsResult);
 
 				return null;
 			});
@@ -206,11 +314,13 @@ public abstract class BasePermissionFilteredPaginationTestCase
 			int from, int to, int pageSize, String expected)
 		throws Exception {
 
-		int count = StringUtil.count(expected, CharPool.OPEN_BRACKET) - 1;
+		int pageCount = StringUtil.count(expected, CharPool.OPEN_BRACKET) - 1;
 
-		List<List<Integer>> pages = new ArrayList<>();
+		Assert.assertTrue(pageCount > 0);
 
-		for (int page = 1; page <= count; page++) {
+		List<List<Integer>> paginatedEntries = new ArrayList<>();
+
+		for (int page = 1; page <= pageCount; page++) {
 			int start = (from - 1) + ((page - 1) * pageSize);
 
 			int end = start + pageSize;
@@ -223,10 +333,39 @@ public abstract class BasePermissionFilteredPaginationTestCase
 
 			List<Integer> entries = getEntries(hits);
 
-			pages.add(entries);
+			paginatedEntries.add(entries);
 		}
 
-		String actual = pages.toString();
+		String actual = paginatedEntries.toString();
+
+		Assert.assertEquals(actual, expected, actual);
+	}
+
+	protected void doAssertPaginationCounts(
+			int from, int to, int pageSize, String expected)
+		throws Exception {
+
+		int pageCount = StringUtil.count(expected, CharPool.COMMA) + 1;
+
+		Assert.assertTrue(pageCount > 0);
+
+		List<Integer> paginatedCounts = new ArrayList<>();
+
+		for (int page = 1; page <= pageCount; page++) {
+			int start = (from - 1) + ((page - 1) * pageSize);
+
+			int end = start + pageSize;
+
+			if (end > to) {
+				end = to;
+			}
+
+			Hits hits = searchFilteredPagination(start, end);
+
+			paginatedCounts.add(hits.getLength());
+		}
+
+		String actual = paginatedCounts.toString();
 
 		Assert.assertEquals(actual, expected, actual);
 	}
@@ -363,11 +502,21 @@ public abstract class BasePermissionFilteredPaginationTestCase
 
 		Mockito.when(
 			defaultSearchResultPermissionFilterConfiguration.
+				permissionFilteredSearchResultAccurateCountThreshold()
+		).thenReturn(
+			permissionFilteredSearchResultAccurateCountThreshold
+		);
+
+		Mockito.when(
+			defaultSearchResultPermissionFilterConfiguration.
 				searchQueryResultWindowLimit()
 		).thenReturn(
-			3
+			searchQueryResultWindowLimit
 		);
 	}
+
+	protected int permissionFilteredSearchResultAccurateCountThreshold;
+	protected int searchQueryResultWindowLimit;
 
 	private static final long _FILTERED_ENTRY_IDENTIFIER = 1000000;
 
