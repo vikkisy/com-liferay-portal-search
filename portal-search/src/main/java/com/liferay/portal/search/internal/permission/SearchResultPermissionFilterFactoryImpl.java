@@ -17,7 +17,6 @@ package com.liferay.portal.search.internal.permission;
 import com.liferay.portal.configuration.metatype.bnd.util.ConfigurableUtil;
 import com.liferay.portal.kernel.search.Hits;
 import com.liferay.portal.kernel.search.IndexerRegistry;
-import com.liferay.portal.kernel.search.RelatedEntryIndexerRegistry;
 import com.liferay.portal.kernel.search.SearchContext;
 import com.liferay.portal.kernel.search.SearchException;
 import com.liferay.portal.kernel.search.SearchResultPermissionFilter;
@@ -53,7 +52,6 @@ public class SearchResultPermissionFilterFactoryImpl
 
 		return new DefaultSearchResultPermissionFilter(
 			facetPostProcessor, indexerRegistry, permissionChecker, props,
-			relatedEntryIndexerRegistry,
 			searchContext -> _search(
 				searchResultPermissionFilterSearcher, searchContext),
 			_defaultSearchResultPermissionFilterConfiguration);
@@ -76,9 +74,6 @@ public class SearchResultPermissionFilterFactoryImpl
 
 	@Reference
 	protected Props props;
-
-	@Reference
-	protected RelatedEntryIndexerRegistry relatedEntryIndexerRegistry;
 
 	private Hits _search(
 		SearchResultPermissionFilterSearcher

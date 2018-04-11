@@ -20,7 +20,6 @@ import com.liferay.portal.kernel.search.Field;
 import com.liferay.portal.kernel.search.Hits;
 import com.liferay.portal.kernel.search.Indexer;
 import com.liferay.portal.kernel.search.IndexerRegistry;
-import com.liferay.portal.kernel.search.RelatedEntryIndexerRegistry;
 import com.liferay.portal.kernel.search.SearchContext;
 import com.liferay.portal.kernel.search.SearchResultPermissionFilter;
 import com.liferay.portal.kernel.search.Sort;
@@ -188,8 +187,6 @@ public abstract class BasePermissionFilteredPaginationTestCase
 		PermissionChecker permissionChecker = Mockito.mock(
 			PermissionChecker.class);
 		Props props = Mockito.mock(Props.class);
-		RelatedEntryIndexerRegistry relatedEntryIndexerRegistry = Mockito.mock(
-			RelatedEntryIndexerRegistry.class);
 
 		DefaultSearchResultPermissionFilterConfiguration
 			defaultSearchResultPermissionFilterConfiguration = Mockito.mock(
@@ -201,7 +198,7 @@ public abstract class BasePermissionFilteredPaginationTestCase
 
 		return new DefaultSearchResultPermissionFilter(
 			new FacetPostProcessorImpl(), indexerRegistry, permissionChecker,
-			props, relatedEntryIndexerRegistry, this::doSearch,
+			props, this::doSearch,
 			defaultSearchResultPermissionFilterConfiguration);
 	}
 
@@ -333,6 +330,14 @@ public abstract class BasePermissionFilteredPaginationTestCase
 
 		Mockito.when(
 			indexer.isFilterSearch()
+		).thenReturn(
+			true
+		);
+
+		Mockito.when(
+			indexer.isVisibleRelatedEntry(
+				AdditionalMatchers.lt(_FILTERED_ENTRY_IDENTIFIER),
+				Matchers.anyInt())
 		).thenReturn(
 			true
 		);

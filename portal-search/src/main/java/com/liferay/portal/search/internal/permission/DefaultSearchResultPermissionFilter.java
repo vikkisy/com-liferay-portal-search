@@ -28,8 +28,6 @@ import com.liferay.portal.kernel.search.HitsImpl;
 import com.liferay.portal.kernel.search.Indexer;
 import com.liferay.portal.kernel.search.IndexerRegistry;
 import com.liferay.portal.kernel.search.QueryConfig;
-import com.liferay.portal.kernel.search.RelatedEntryIndexer;
-import com.liferay.portal.kernel.search.RelatedEntryIndexerRegistry;
 import com.liferay.portal.kernel.search.SearchContext;
 import com.liferay.portal.kernel.search.SearchResultPermissionFilter;
 import com.liferay.portal.kernel.search.facet.Facet;
@@ -38,7 +36,6 @@ import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
-import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.Props;
 import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.SetUtil;
@@ -64,7 +61,6 @@ public class DefaultSearchResultPermissionFilter
 	public DefaultSearchResultPermissionFilter(
 		FacetPostProcessor facetPostProcessor, IndexerRegistry indexerRegistry,
 		PermissionChecker permissionChecker, Props props,
-		RelatedEntryIndexerRegistry relatedEntryIndexerRegistry,
 		Function<SearchContext, Hits> searchFunction,
 		DefaultSearchResultPermissionFilterConfiguration
 			defaultSearchResultPermissionFilterConfiguration) {
@@ -72,7 +68,6 @@ public class DefaultSearchResultPermissionFilter
 		_facetPostProcessor = facetPostProcessor;
 		_indexerRegistry = indexerRegistry;
 		_permissionChecker = permissionChecker;
-		_relatedEntryIndexerRegistry = relatedEntryIndexerRegistry;
 		_searchFunction = searchFunction;
 
 		_searchQueryResultWindowLimit =
@@ -249,23 +244,8 @@ public class DefaultSearchResultPermissionFilter
 		try {
 			if (indexer.hasPermission(
 					_permissionChecker, entryClassName, entryClassPK,
-					ActionKeys.VIEW)) {
-
-				List<RelatedEntryIndexer> relatedEntryIndexers =
-					_relatedEntryIndexerRegistry.getRelatedEntryIndexers(
-						entryClassName);
-
-				if (ListUtil.isNotEmpty(relatedEntryIndexers)) {
-					for (RelatedEntryIndexer relatedEntryIndexer :
-							relatedEntryIndexers) {
-
-						if (!relatedEntryIndexer.isVisibleRelatedEntry(
-								entryClassPK, status)) {
-
-							return false;
-						}
-					}
-				}
+					ActionKeys.VIEW) &&
+				indexer.isVisibleRelatedEntry(entryClassPK, status)) {
 
 				return true;
 			}
@@ -290,7 +270,6 @@ public class DefaultSearchResultPermissionFilter
 	private double _indexPermissionFilterSearchAmplificationFactor;
 	private final PermissionChecker _permissionChecker;
 	private Props _props;
-	private final RelatedEntryIndexerRegistry _relatedEntryIndexerRegistry;
 	private final Function<SearchContext, Hits> _searchFunction;
 	private final int _searchQueryResultWindowLimit;
 
