@@ -59,7 +59,7 @@ int index = 0;
 						data.put("value", StringPool.BLANK);
 						%>
 
-						<aui:a cssClass='<%= (Validator.isNull(fieldParamSelection) || fieldParamSelection.equals("0")) ? "text-primary" : "text-default" %>' href="javascript:;">
+						<aui:a cssClass='<%= Validator.isNull(fieldParam) ? "text-primary" : "text-default" %>' href="javascript:;">
 							<liferay-ui:message key="<%= HtmlUtil.escape(facetConfiguration.getLabel()) %>" />
 						</aui:a>
 					</li>
