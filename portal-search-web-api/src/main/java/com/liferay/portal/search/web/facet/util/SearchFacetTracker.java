@@ -26,7 +26,7 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 import org.osgi.service.component.annotations.ReferencePolicyOption;
 
 /**
- * @author Eudaldo Alonso
+ * @author     Eudaldo Alonso
  * @deprecated As of Judson, with no direct replacement
  */
 @Component(immediate = true, service = SearchFacetTracker.class)
