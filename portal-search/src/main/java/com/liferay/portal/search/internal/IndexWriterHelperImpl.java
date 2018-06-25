@@ -389,7 +389,7 @@ public class IndexWriterHelperImpl implements IndexWriterHelper {
 	}
 
 	/**
-	 * @deprecated As of 3.3.0, replaced by {@link IndexStatusManager#
+	 * @deprecated As of Wilberforce, replaced by {@link IndexStatusManager#
 	 *             isIndexReadOnly}
 	 */
 	@Deprecated
@@ -521,7 +521,7 @@ public class IndexWriterHelperImpl implements IndexWriterHelper {
 	}
 
 	/**
-	 * @deprecated As of 3.3.0, replaced by {@link IndexStatusManager.
+	 * @deprecated As of Wilberforce, replaced by {@link IndexStatusManager.
 	 *             setIndexReadOnly(boolean)}
 	 */
 	@Deprecated
